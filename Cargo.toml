@@ -1,8 +1,8 @@
 [package]
-name = "rusty-leveldb"
+name = "rusty-leveldb-arc"
 version = "2.0.0"
-authors = ["Lewin Bormann <lbo@spheniscida.de>"]
-description = "A compatible re-implementation of LevelDB in Rust"
+authors = ["Lewin Bormann <lbo@spheniscida.de>", "KunoiSayami <i@leanhe.dev>"]
+description = "A compatible re-implementation of LevelDB in Rust (But use Arc instead of Rc)"
 homepage = "https://github.com/dermesser/leveldb-rs"
 repository = "https://github.com/dermesser/leveldb-rs"
 readme = "README.md"

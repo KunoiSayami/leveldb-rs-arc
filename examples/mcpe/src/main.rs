@@ -1,7 +1,8 @@
+use std::sync::Arc;
 use miniz_oxide::deflate::{compress_to_vec, compress_to_vec_zlib};
 use miniz_oxide::inflate::{decompress_to_vec, decompress_to_vec_zlib};
-use rusty_leveldb::{Compressor, CompressorList, Options, DB};
-use std::rc::Rc;
+use rusty_leveldb_arc::{Compressor, CompressorList, Options, DB};
+
 
 struct ZlibCompressor(u8);
 
@@ -14,13 +15,13 @@ impl ZlibCompressor {
 }
 
 impl Compressor for ZlibCompressor {
-    fn encode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
+    fn encode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
         Ok(compress_to_vec_zlib(&block, self.0))
     }
 
-    fn decode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
-        decompress_to_vec_zlib(&block).map_err(|e| rusty_leveldb::Status {
-            code: rusty_leveldb::StatusCode::CompressionError,
+    fn decode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
+        decompress_to_vec_zlib(&block).map_err(|e| rusty_leveldb_arc::Status {
+            code: rusty_leveldb_arc::StatusCode::CompressionError,
             err: e.to_string(),
         })
     }
@@ -37,13 +38,13 @@ impl RawZlibCompressor {
 }
 
 impl Compressor for RawZlibCompressor {
-    fn encode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
+    fn encode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
         Ok(compress_to_vec(&block, self.0))
     }
 
-    fn decode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
-        decompress_to_vec(&block).map_err(|e| rusty_leveldb::Status {
-            code: rusty_leveldb::StatusCode::CompressionError,
+    fn decode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
+        decompress_to_vec(&block).map_err(|e| rusty_leveldb_arc::Status {
+            code: rusty_leveldb_arc::StatusCode::CompressionError,
             err: e.to_string(),
         })
     }
@@ -55,7 +56,7 @@ pub fn mcpe_options(compression_level: u8) -> Options {
     let mut list = CompressorList::new();
     list.set_with_id(0, RawZlibCompressor::new(compression_level));
     list.set_with_id(1, ZlibCompressor::new(compression_level));
-    opt.compressor_list = Rc::new(list);
+    opt.compressor_list = Arc::new(list);
     opt
 }
 

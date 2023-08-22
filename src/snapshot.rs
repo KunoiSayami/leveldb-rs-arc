@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::types::{share, SequenceNumber, Shared, MAX_SEQUENCE_NUMBER};
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// Opaque snapshot handle; Represents index to SnapshotList.map
 type SnapshotHandle = u64;
@@ -24,7 +24,7 @@ impl Drop for InnerSnapshot {
 
 #[derive(Clone)]
 pub struct Snapshot {
-    inner: Rc<InnerSnapshot>,
+    inner: Arc<InnerSnapshot>,
 }
 
 impl Snapshot {
@@ -68,7 +68,7 @@ impl SnapshotList {
         }
 
         Snapshot {
-            inner: Rc::new(InnerSnapshot {
+            inner: Arc::new(InnerSnapshot {
                 id: sl.newest,
                 seq,
                 sl: inner,

@@ -3,9 +3,9 @@
 //! and should be easy to use.
 //!
 //! ```
-//! use rusty_leveldb::{DB, DBIterator, LdbIterator, Options};
+//! use rusty_leveldb_arc::{DB, DBIterator, LdbIterator, Options};
 //!
-//! let opt = rusty_leveldb::in_memory();
+//! let opt = rusty_leveldb_arc::in_memory();
 //! let mut db = DB::open("mydatabase", opt).unwrap();
 //!
 //! db.put(b"Hello", b"World").unwrap();

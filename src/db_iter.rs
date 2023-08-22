@@ -7,7 +7,7 @@ use crate::version_set::VersionSet;
 
 use std::cmp::Ordering;
 use std::mem;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use rand;
 
@@ -16,7 +16,7 @@ const READ_BYTES_PERIOD: isize = 1048576;
 /// DBIterator is an iterator over the contents of a database.
 pub struct DBIterator {
     // A user comparator.
-    cmp: Rc<Box<dyn Cmp>>,
+    cmp: Arc<Box<dyn Cmp>>,
     vset: Shared<VersionSet>,
     iter: MergingIter,
     // By holding onto a snapshot, we make sure that the iterator iterates over the state at the
@@ -36,7 +36,7 @@ pub struct DBIterator {
 
 impl DBIterator {
     pub fn new(
-        cmp: Rc<Box<dyn Cmp>>,
+        cmp: Arc<Box<dyn Cmp>>,
         vset: Shared<VersionSet>,
         iter: MergingIter,
         ss: Snapshot,

@@ -1,6 +1,6 @@
 extern crate rusty_leveldb;
 
-use rusty_leveldb::{compressor, CompressorId, LdbIterator, Options, DB};
+use rusty_leveldb_arc::{compressor, CompressorId, LdbIterator, Options, DB};
 
 use std::env::args;
 use std::io::{self, Write};

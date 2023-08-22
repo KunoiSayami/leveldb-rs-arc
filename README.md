@@ -1,4 +1,4 @@
-# leveldb-rs
+# leveldb-rs-arc
 
 [![crates.io](https://img.shields.io/crates/v/rusty-leveldb.svg)](https://crates.io/crates/rusty-leveldb)
 

@@ -13,7 +13,7 @@ use crate::table_builder::{self, Footer};
 use crate::types::{current_key_val, LdbIterator};
 
 use std::cmp::Ordering;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use integer_encoding::FixedIntWriter;
 
@@ -32,7 +32,7 @@ fn read_footer(f: &dyn RandomAccess, size: usize) -> Result<Footer> {
 
 #[derive(Clone)]
 pub struct Table {
-    file: Rc<Box<dyn RandomAccess>>,
+    file: Arc<Box<dyn RandomAccess>>,
     file_size: usize,
     cache_id: cache::CacheID,
 
@@ -45,7 +45,7 @@ pub struct Table {
 
 impl Table {
     /// Creates a new table reader operating on unformatted keys (i.e., UserKey).
-    fn new_raw(opt: Options, file: Rc<Box<dyn RandomAccess>>, size: usize) -> Result<Table> {
+    fn new_raw(opt: Options, file: Arc<Box<dyn RandomAccess>>, size: usize) -> Result<Table> {
         let footer = read_footer(file.as_ref().as_ref(), size)?;
         let indexblock =
             table_block::read_table_block(opt.clone(), file.as_ref().as_ref(), &footer.index)?;
@@ -105,9 +105,9 @@ impl Table {
     /// Creates a new table reader operating on internal keys (i.e., InternalKey). This means that
     /// a different comparator (internal_key_cmp) and a different filter policy
     /// (InternalFilterPolicy) are used.
-    pub fn new(mut opt: Options, file: Rc<Box<dyn RandomAccess>>, size: usize) -> Result<Table> {
-        opt.cmp = Rc::new(Box::new(InternalKeyCmp(opt.cmp.clone())));
-        opt.filter_policy = Rc::new(Box::new(filter::InternalFilterPolicy::new(
+    pub fn new(mut opt: Options, file: Arc<Box<dyn RandomAccess>>, size: usize) -> Result<Table> {
+        opt.cmp = Arc::new(Box::new(InternalKeyCmp(opt.cmp.clone())));
+        opt.filter_policy = Arc::new(Box::new(filter::InternalFilterPolicy::new(
             opt.filter_policy,
         )));
         Table::new_raw(opt, file, size)
@@ -134,11 +134,11 @@ impl Table {
             return Ok(block.clone());
         }
 
-        // Two times as_ref(): First time to get a ref from Rc<>, then one from Box<>.
+        // Two times as_ref(): First time to get a ref from Arc<>, then one from Box<>.
         let b =
             table_block::read_table_block(self.opt.clone(), self.file.as_ref().as_ref(), location)?;
 
-        // insert a cheap copy (Rc).
+        // insert a cheap copy (Arc).
         self.opt
             .block_cache
             .borrow_mut()
@@ -429,7 +429,7 @@ mod tests {
         let mut opt = options::for_test();
         opt.block_restart_interval = 1;
         opt.block_size = 32;
-        opt.filter_policy = Rc::new(Box::new(BloomPolicy::new(4)));
+        opt.filter_policy = Arc::new(Box::new(BloomPolicy::new(4)));
 
         let mut i = 1 as u64;
         let data: Vec<(Vec<u8>, &'static str)> = build_data()
@@ -456,8 +456,8 @@ mod tests {
         (d, size)
     }
 
-    fn wrap_buffer(src: Vec<u8>) -> Rc<Box<dyn RandomAccess>> {
-        Rc::new(Box::new(src))
+    fn wrap_buffer(src: Vec<u8>) -> Arc<Box<dyn RandomAccess>> {
+        Arc::new(Box::new(src))
     }
 
     #[test]

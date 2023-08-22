@@ -4,17 +4,16 @@
 #[macro_use]
 extern crate bencher;
 extern crate rand;
-extern crate rusty_leveldb;
+extern crate rusty_leveldb_arc;
 
 use bencher::Bencher;
 use rand::Rng;
 
-use rusty_leveldb::DefaultCmp;
-use rusty_leveldb::SkipMap;
+use rusty_leveldb_arc::DefaultCmp;
+use rusty_leveldb_arc::SkipMap;
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 fn gen_key_val<R: Rng>(gen: &mut R, keylen: usize, vallen: usize) -> (Vec<u8>, Vec<u8>) {
     let mut key = Vec::with_capacity(keylen);
@@ -40,7 +39,7 @@ fn bench_gen_key_val(b: &mut Bencher) {
 fn bench_skipmap_insert(b: &mut Bencher) {
     let mut gen = rand::thread_rng();
 
-    let mut skm = SkipMap::new(Rc::new(Box::new(DefaultCmp)));
+    let mut skm = SkipMap::new(Arc::new(Box::new(DefaultCmp)));
 
     b.iter(|| {
         let (mut k, v) = gen_key_val(&mut gen, 10, 10);

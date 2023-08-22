@@ -7,7 +7,7 @@ use crate::types::{FileMetaData, FileNum, LdbIterator, Shared, MAX_SEQUENCE_NUMB
 
 use std::cmp::Ordering;
 use std::default::Default;
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// FileMetaHandle is a reference-counted FileMetaData object with interior mutability. This is
 /// necessary to provide a shared metadata container that can be modified while referenced by e.g.
@@ -22,7 +22,7 @@ pub struct GetStats {
 
 pub struct Version {
     table_cache: Shared<TableCache>,
-    user_cmp: Rc<Box<dyn Cmp>>,
+    user_cmp: Arc<Box<dyn Cmp>>,
     pub files: [Vec<FileMetaHandle>; NUM_LEVELS],
 
     pub file_to_compact: Option<FileMetaHandle>,
@@ -32,7 +32,7 @@ pub struct Version {
 }
 
 impl Version {
-    pub fn new(cache: Shared<TableCache>, ucmp: Rc<Box<dyn Cmp>>) -> Version {
+    pub fn new(cache: Shared<TableCache>, ucmp: Arc<Box<dyn Cmp>>) -> Version {
         Version {
             table_cache: cache,
             user_cmp: ucmp,
@@ -384,7 +384,7 @@ impl Version {
 pub fn new_version_iter(
     files: Vec<FileMetaHandle>,
     cache: Shared<TableCache>,
-    ucmp: Rc<Box<dyn Cmp>>,
+    ucmp: Arc<Box<dyn Cmp>>,
 ) -> VersionIter {
     VersionIter {
         files,
@@ -400,7 +400,7 @@ pub fn new_version_iter(
 ///
 /// Note that VersionIter returns entries of type Deletion.
 pub struct VersionIter {
-    // NOTE: Maybe we need to change this to Rc to support modification of the file set after
+    // NOTE: Maybe we need to change this to Arc to support modification of the file set after
     // creation of the iterator. Versions should be immutable, though.
     files: Vec<FileMetaHandle>,
     cache: Shared<TableCache>,
@@ -706,7 +706,7 @@ pub mod testutil {
         let t9 = write_table(&env, f9, 1, 9);
 
         let cache = TableCache::new("db", opts.clone(), 100);
-        let mut v = Version::new(share(cache), Rc::new(Box::new(DefaultCmp)));
+        let mut v = Version::new(share(cache), Arc::new(Box::new(DefaultCmp)));
         v.files[0] = vec![t1, t2];
         v.files[1] = vec![t3, t4, t5];
         v.files[2] = vec![t6, t7];
@@ -756,14 +756,14 @@ mod tests {
         let v = make_version().0;
         let iters = v.new_iters().unwrap();
         let mut opt = options::for_test();
-        opt.cmp = Rc::new(Box::new(InternalKeyCmp(Rc::new(Box::new(DefaultCmp)))));
+        opt.cmp = Arc::new(Box::new(InternalKeyCmp(Arc::new(Box::new(DefaultCmp)))));
 
         let mut miter = MergingIter::new(opt.cmp.clone(), iters);
         assert_eq!(LdbIteratorIter::wrap(&mut miter).count(), 30);
 
         // Check that all elements are in order.
         let init = LookupKey::new("000".as_bytes(), MAX_SEQUENCE_NUMBER);
-        let cmp = InternalKeyCmp(Rc::new(Box::new(DefaultCmp)));
+        let cmp = InternalKeyCmp(Arc::new(Box::new(DefaultCmp)));
         LdbIteratorIter::wrap(&mut miter).fold(init.internal_key().to_vec(), |b, (k, _)| {
             assert!(cmp.cmp(&b, &k) == Ordering::Less);
             k
@@ -929,7 +929,7 @@ mod tests {
     fn test_version_key_ordering() {
         time_test!();
         let fmh = new_file(1, &[1, 0, 0], 0, &[2, 0, 0], 1);
-        let cmp = InternalKeyCmp(Rc::new(Box::new(DefaultCmp)));
+        let cmp = InternalKeyCmp(Arc::new(Box::new(DefaultCmp)));
 
         // Keys before file.
         for k in &[&[0][..], &[1], &[1, 0], &[0, 9, 9, 9]] {
@@ -968,7 +968,7 @@ mod tests {
             new_file(2, &[2, 5, 0], 0, &[4, 0, 0], 1),
             new_file(3, &[3, 5, 1], 0, &[5, 0, 0], 1),
         ];
-        let cmp = InternalKeyCmp(Rc::new(Box::new(DefaultCmp)));
+        let cmp = InternalKeyCmp(Arc::new(Box::new(DefaultCmp)));
 
         assert!(some_file_overlaps_range(
             &cmp,

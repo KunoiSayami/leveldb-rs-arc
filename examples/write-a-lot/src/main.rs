@@ -2,7 +2,7 @@ extern crate rand;
 extern crate rusty_leveldb;
 
 use rand::Rng;
-use rusty_leveldb::{compressor, CompressorId, Options, DB};
+use rusty_leveldb_arc::{compressor, CompressorId, Options, DB};
 
 use std::error::Error;
 use std::iter::FromIterator;

@@ -13,7 +13,7 @@ use integer_encoding::FixedIntWriter;
 
 use std::convert::AsRef;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub fn table_file_name<P: AsRef<Path>>(name: P, num: FileNum) -> PathBuf {
     assert!(num > 0);
@@ -70,7 +70,7 @@ impl TableCache {
         if file_size == 0 {
             return err(StatusCode::InvalidData, "file is empty");
         }
-        let file = Rc::new(self.opts.env.open_random_access_file(&path)?);
+        let file = Arc::new(self.opts.env.open_random_access_file(&path)?);
         // No SSTable file name compatibility.
         let table = Table::new(self.opts.clone(), file, file_size)?;
         self.cache.insert(&filenum_to_key(file_num), table.clone());
@@ -137,7 +137,7 @@ mod tests {
         // Tests that a table can be written to a MemFS file, read back by the table cache and
         // parsed/iterated by the table reader.
         let mut opt = options::for_test();
-        opt.env = Rc::new(Box::new(MemEnv::new()));
+        opt.env = Arc::new(Box::new(MemEnv::new()));
         let dbname = Path::new("testdb1");
         let tablename = table_file_name(dbname, 123);
         let tblpath = Path::new(&tablename);

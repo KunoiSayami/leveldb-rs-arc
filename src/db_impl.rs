@@ -35,7 +35,7 @@ use std::mem;
 use std::ops::Drop;
 use std::path::Path;
 use std::path::PathBuf;
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// DB contains the actual database implemenation. As opposed to the original, this implementation
 /// is not concurrent (yet).
@@ -44,7 +44,7 @@ pub struct DB {
     path: PathBuf,
     lock: Option<FileLock>,
 
-    internal_cmp: Rc<Box<dyn Cmp>>,
+    internal_cmp: Arc<Box<dyn Cmp>>,
     fpol: InternalFilterPolicy<BoxedFilterPolicy>,
     opt: Options,
 
@@ -81,7 +81,7 @@ impl DB {
             name: name.to_owned(),
             path,
             lock: None,
-            internal_cmp: Rc::new(Box::new(InternalKeyCmp(opt.cmp.clone()))),
+            internal_cmp: Arc::new(Box::new(InternalKeyCmp(opt.cmp.clone()))),
             fpol: InternalFilterPolicy::new(opt.filter_policy.clone()),
 
             mem: MemTable::new(opt.cmp.clone()),
@@ -236,7 +236,7 @@ impl DB {
         let filename = log_file_name(&self.path, log_num);
         let logfile = self.opt.env.open_sequential_file(Path::new(&filename))?;
         // Use the user-supplied comparator; it will be wrapped inside a MemtableKeyCmp.
-        let cmp: Rc<Box<dyn Cmp>> = self.opt.cmp.clone();
+        let cmp: Arc<Box<dyn Cmp>> = self.opt.cmp.clone();
 
         let mut logreader = LogReader::new(
             logfile, // checksum=

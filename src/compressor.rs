@@ -1,7 +1,7 @@
 /// Custom compression method
 ///
 /// ```
-/// # use rusty_leveldb::{Compressor, CompressorId};
+/// # use rusty_leveldb_arc::{Compressor, CompressorId};
 ///
 /// #[derive(Debug, Clone, Copy, Default)]
 /// pub struct CustomCompressor;
@@ -12,12 +12,12 @@
 /// }
 ///
 /// impl Compressor for CustomCompressor {
-///     fn encode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
+///     fn encode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
 ///         // Do something
 ///         Ok(block)
 ///     }
 ///
-///     fn decode(&self, block: Vec<u8>) -> rusty_leveldb::Result<Vec<u8>> {
+///     fn decode(&self, block: Vec<u8>) -> rusty_leveldb_arc::Result<Vec<u8>> {
 ///         // Do something
 ///         Ok(block)
 ///     }

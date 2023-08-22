@@ -4,7 +4,7 @@ use crate::error::{err, Result, StatusCode};
 
 use std::cell::RefCell;
 use std::path::Path;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub const NUM_LEVELS: usize = 7;
 
@@ -14,10 +14,10 @@ pub type SequenceNumber = u64;
 pub const MAX_SEQUENCE_NUMBER: SequenceNumber = (1 << 56) - 1;
 
 /// A shared thingy with interior mutability.
-pub type Shared<T> = Rc<RefCell<T>>;
+pub type Shared<T> = Arc<RefCell<T>>;
 
-pub fn share<T>(t: T) -> Rc<RefCell<T>> {
-    Rc::new(RefCell::new(t))
+pub fn share<T>(t: T) -> Arc<RefCell<T>> {
+    Arc::new(RefCell::new(t))
 }
 
 #[derive(PartialEq)]

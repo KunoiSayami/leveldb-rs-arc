@@ -1,5 +1,5 @@
 use leveldb::CompressorId;
-use rusty_leveldb as leveldb;
+use rusty_leveldb_arc as leveldb;
 
 use std::fs::OpenOptions;
 use std::io::{self, BufRead};

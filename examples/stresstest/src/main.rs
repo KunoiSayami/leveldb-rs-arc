@@ -1,5 +1,5 @@
 use rand::distributions::{Alphanumeric, DistString};
-use rusty_leveldb::{compressor, CompressorId, Options, DB};
+use rusty_leveldb_arc::{compressor, CompressorId, Options, DB};
 
 const KEY_LEN: usize = 5;
 const VAL_LEN: usize = 8;

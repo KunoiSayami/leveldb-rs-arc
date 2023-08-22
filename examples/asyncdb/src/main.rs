@@ -1,6 +1,6 @@
 use tokio::main;
 
-use rusty_leveldb::{AsyncDB, Options, Status, StatusCode};
+use rusty_leveldb_arc::{AsyncDB, Options, Status, StatusCode};
 
 #[main(flavor = "current_thread")]
 async fn main() {

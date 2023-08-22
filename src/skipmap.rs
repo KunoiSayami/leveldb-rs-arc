@@ -6,7 +6,7 @@ use crate::types::LdbIterator;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::mem::{replace, size_of};
-use std::rc::Rc;
+use std::sync::Arc;
 
 const MAX_HEIGHT: usize = 12;
 const BRANCHING_FACTOR: u32 = 4;
@@ -30,7 +30,7 @@ struct InnerSkipMap {
     len: usize,
     // approximation of memory used.
     approx_mem: usize,
-    cmp: Rc<Box<dyn Cmp>>,
+    cmp: Arc<Box<dyn Cmp>>,
 }
 
 impl Drop for InnerSkipMap {
@@ -44,22 +44,22 @@ impl Drop for InnerSkipMap {
 }
 
 pub struct SkipMap {
-    map: Rc<RefCell<InnerSkipMap>>,
+    map: Arc<RefCell<InnerSkipMap>>,
 }
 
 impl SkipMap {
     /// Returns a SkipMap that wraps the comparator inside a MemtableKeyCmp.
-    pub fn new_memtable_map(cmp: Rc<Box<dyn Cmp>>) -> SkipMap {
-        SkipMap::new(Rc::new(Box::new(MemtableKeyCmp(cmp))))
+    pub fn new_memtable_map(cmp: Arc<Box<dyn Cmp>>) -> SkipMap {
+        SkipMap::new(Arc::new(Box::new(MemtableKeyCmp(cmp))))
     }
 
     /// Returns a SkipMap that uses the specified comparator.
-    pub fn new(cmp: Rc<Box<dyn Cmp>>) -> SkipMap {
+    pub fn new(cmp: Arc<Box<dyn Cmp>>) -> SkipMap {
         let mut s = Vec::new();
         s.resize(MAX_HEIGHT, None);
 
         SkipMap {
-            map: Rc::new(RefCell::new(InnerSkipMap {
+            map: Arc::new(RefCell::new(InnerSkipMap {
                 head: Box::new(Node {
                     skips: s,
                     next: None,
@@ -298,7 +298,7 @@ impl InnerSkipMap {
 }
 
 pub struct SkipMapIter {
-    map: Rc<RefCell<InnerSkipMap>>,
+    map: Arc<RefCell<InnerSkipMap>>,
     current: *const Node,
 }
 
@@ -485,7 +485,7 @@ pub mod tests {
     #[test]
     fn test_empty_skipmap_find_memtable_cmp() {
         // Regression test: Make sure comparator isn't called with empty key.
-        let cmp: Rc<Box<dyn Cmp>> = Rc::new(Box::new(MemtableKeyCmp(options::for_test().cmp)));
+        let cmp: Arc<Box<dyn Cmp>> = Arc::new(Box::new(MemtableKeyCmp(options::for_test().cmp)));
         let skm = SkipMap::new(cmp);
 
         let mut it = skm.iter();
